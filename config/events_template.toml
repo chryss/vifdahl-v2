@@ -1,0 +1,21 @@
+# Template file for events.toml 
+# The tests use these two events. Copy and adapt as required
+
+[defaults]
+extent_km = { north = 10, south = 10, west = 10, east = 10 }
+
+# We're using the 2015 Sockeye and 2019 Shovel Creek fire as examples/test cases
+
+[events.sockeye]
+name = "Sockeye Fire"
+center = [-150.08544, 61.84486]
+extent_km = { north = 10, south = 15, west = 10, east = 10 }
+start = 2015-06-13
+end = 2015-06-19
+
+[events.shovelcreek]
+name = "Shovel Creek Fire"
+center = [-148.415283, 64.98694]
+extent_km = { north = 10, south = 10, west = 5, east = 20 }
+start = 2019-06-24
+end = 2019-07-23

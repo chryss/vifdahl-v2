@@ -1,0 +1,28 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# Python
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# data: only test reference files in git
+data/*
+!data/reference/
+data/reference/*
+!data/reference/2019_shovelcreek/
+output/
+
+# only configuration templates
+config/*.toml
+!config/*_template.toml
+
+# archives and partial downloads
+*.zip
+*.crdownload
+.DS_Store
+
+# legacy reference code (local only)
+legacy/

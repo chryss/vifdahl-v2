@@ -1,0 +1,25 @@
+# config/run_template.toml
+name = "mukluk_2026"                    # names the work folder and output files
+
+[aoi]                                   # exactly one of:
+event = "sockeye"                        #   key in the events file (also gives default dates)
+# bbox = [-145.0, 62.5, -141.0, 64.0]   #   OR west, south, east, north
+# file = "aoi/my_region.geojson"        #   OR vector file
+# buffer_km = 0                         #   optional, with file
+
+[dates]                                 # local solar dates, inclusive; optional with event
+start = 2015-06-14
+end = 2015-06-16
+
+[data]
+platforms = ["NPP", "N20", "N21"]
+workdir = "/path/on/scratch/vifdahl"   # run goes into workdir/name/
+keep_raw = false
+n_jobs = 8
+
+[algorithm]                             # any Thresholds field; defaults otherwise
+min_i5_special = 305
+per_pixel_daynight = false
+
+[output]
+format = "gpkg"
