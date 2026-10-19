@@ -31,6 +31,10 @@ def test_matches_legacy(daytime: bool, min_i5_special: float) -> None:
     expected = legacy.getfireconditions_fromrasters(
         i4, i5, pixq4, pixq5, daytime=daytime, mint5_special=min_i5_special)
     thresholds = replace(PUBLISHED_THRESHOLDS, min_i5_special=min_i5_special)
+    # removing the legacy_anom from legacy_warm as we changed the algorithm
+    # to make these two conditions mutually exclusive
+    legacy_anom, legacy_hot, legacy_warm = expected
+    expected = (legacy_anom, legacy_hot, legacy_warm & ~legacy_anom)
     result = classify(i4, i5, anomaly_mask(i4, pixq4, pixq5), daytime, thresholds)
     for got, want in zip(result, expected):
         np.testing.assert_array_equal(got, want)
@@ -53,6 +57,7 @@ def test_hot_and_warm_exclusive() -> None:
     i4, i5, pixq4, pixq5 = random_scene()
     for daytime in (True, False):
         masks = classify(i4, i5, anomaly_mask(i4, pixq4, pixq5), daytime)
+        assert not (masks.warm & masks.anomalous).any()
         assert not (masks.hot & masks.warm).any()
         assert not (masks.hot & masks.anomalous).any()
 

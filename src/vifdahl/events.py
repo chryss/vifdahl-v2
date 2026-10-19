@@ -29,6 +29,11 @@ class FireEvent:
     start: dt.date | None = None
     end: dt.date | None = None
 
+    @property
+    def crs(self) -> str:
+        """Lambert azimuthal equal-area CRS centered on the event (north-up, meters)."""
+        return f"+proj=laea +lat_0={self.center_lat} +lon_0={self.center_lon} +datum=WGS84"
+
     def aoi(self, crs: str | None = None) -> Polygon:
         """Return the AOI in EPSG:4326, built as a box in ``crs``.
 
@@ -36,13 +41,13 @@ class FireEvent:
         ----------
         crs : str, optional
             Projected CRS (meters) in which the box is rectangular. Default:
-            Lambert azimuthal equal-area centered on the event (north-up).
+            ``self.crs``.
 
         Returns
         -------
         shapely.geometry.Polygon
         """
-        crs = crs or f"+proj=laea +lat_0={self.center_lat} +lon_0={self.center_lon} +datum=WGS84"
+        crs = crs or self.crs
         to_proj = pyproj.Transformer.from_crs("EPSG:4326", crs, always_xy=True)
         to_geo = pyproj.Transformer.from_crs(crs, "EPSG:4326", always_xy=True)
         x, y = to_proj.transform(self.center_lon, self.center_lat)

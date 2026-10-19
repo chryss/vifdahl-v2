@@ -41,7 +41,7 @@ class FireMasks(NamedTuple):
     """Boolean fire-condition rasters.
 
     ``hot`` and ``warm`` are mutually exclusive. ``anomalous`` excludes
-    ``hot`` but, as in the original algorithm, may overlap with ``warm``.
+    ``hot`` and, unlike in the original algorithm, also ``warm``.
     """
 
     anomalous: NDArray[np.bool_]
@@ -112,7 +112,7 @@ def classify(
          | ((ndiff >= th.ndiff_warm_special) & (i5_bt >= th.min_i5_special)))
         & (i5_bt > th.min_i5_day)
         & (i4_bt > th.min_i4_day)
-        & ~hot_day
+        & ~hot_day & ~anomalous
     )
 
     cloud_night = i5_bt < th.cloud_i5_night
@@ -121,7 +121,7 @@ def classify(
         (ndiff >= th.ndiff_warm_special)
         & (i4_bt > th.min_i4_night)
         & ~cloud_night
-        & ~hot_night
+        & ~hot_night & ~anomalous
     )
 
     hot = np.where(is_day, hot_day, hot_night)
