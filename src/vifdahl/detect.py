@@ -12,11 +12,13 @@ import xarray as xr
 from vifdahl.algorithm import DEFAULT_THRESHOLDS, FireMasks, Thresholds, classify
 from vifdahl.periods import assign_period
 from vifdahl.readers import validate_swath
-from vifdahl.swath import duplicate_pixels, is_day, pixel_footprints, scene_is_day
+from vifdahl.swath import (duplicate_pixels, is_day, nadir_daynight, pixel_footprints,
+                           scene_is_day)
 
 SENSOR = "VIIRS"
 BANDS = "I-Bands"
 TYPE_CODES = {"anomalous": "A", "hot": "H", "warm": "L"}
+DAYNIGHT = ("scene", "pixel", "nadir")
 COLUMNS = [
     "Platform", "Sensor", "Bands", "Orbit", "Granule", "DATE", "GMT", "Type",
     "AscNode", "LAT", "LON", "TB4", "TB5", "SolZenithAng", "SatZenithAng",
@@ -27,7 +29,7 @@ COLUMNS = [
 def detect(
     swath: xr.Dataset,
     thresholds: Thresholds = DEFAULT_THRESHOLDS,
-    per_pixel_daynight: bool = False,
+    daynight: str = "scene",
 ) -> FireMasks:
     """Classify fire pixels in one granule, excluding scan-overlap duplicates.
 
@@ -37,19 +39,29 @@ def detect(
         Granule (or crop) following the schema in ``vifdahl.readers``.
     thresholds : Thresholds, optional
         Threshold set.
-    per_pixel_daynight : bool, optional
-        If False (default, as published), the whole scene is classified as
-        night unless every pixel has a solar zenith angle <= 90°. If True,
-        day/night is decided per pixel.
+    daynight : {"scene", "pixel", "nadir"}, optional
+        ``"scene"`` (default, as published): the whole scene is night unless
+        every pixel has a solar zenith angle <= 90°. ``"pixel"``: decided per
+        pixel. ``"nadir"``: per pixel, dropping pixels whose class differs from
+        their row's most-nadir pixel (see ``vifdahl.swath.nadir_daynight``).
 
     Returns
     -------
     FireMasks
-        Boolean rasters with duplicated pixels set to False.
+        Boolean rasters with duplicated (and, for ``"nadir"``, masked) pixels
+        set to False.
     """
+    if daynight not in DAYNIGHT:
+        raise ValueError(f"daynight must be one of {DAYNIGHT}, not {daynight!r}")
     validate_swath(swath)
     sza = swath["sza"].values
-    day = is_day(sza) if per_pixel_daynight else scene_is_day(sza)
+    keep = True
+    if daynight == "scene":
+        day = scene_is_day(sza)
+    elif daynight == "pixel":
+        day = is_day(sza)
+    else:
+        day, keep = nadir_daynight(sza, swath["vza"].values)
     masks = classify(
         swath["i4_bt"].values,
         swath["i5_bt"].values,
@@ -58,7 +70,7 @@ def detect(
         thresholds,
     )
     dup = duplicate_pixels(swath["lat"].values, bool(swath.attrs["ascending_node"]))
-    return FireMasks(*(m & ~dup for m in masks))
+    return FireMasks(*(m & ~dup & keep for m in masks))
 
 
 def detections_table(swath: xr.Dataset, masks: FireMasks) -> pd.DataFrame:

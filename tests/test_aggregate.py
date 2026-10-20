@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from shapely.geometry import box
 
-from vifdahl.aggregate import fuse
+from vifdahl.aggregate import aggregate, fuse
 
 REFDIR = Path(__file__).parents[1] / "data" / "reference" / "2019_shovelcreek"
 SLICES = {
@@ -68,3 +68,16 @@ def test_low_fully_covered_by_high() -> None:
     gdf = synthetic(["H", "L"], [square(0, 0), square(0, 0)])
     fused = fuse(gdf, crs="EPSG:3338")
     assert list(fused["Class"]) == ["H"]
+
+
+def test_aggregate_fuse_by() -> None:
+    gdf = synthetic(["H", "H"], [square(0, 0), square(100, 0)])
+    gdf = gdf.assign(Platform=["NPP", "N20"], LocalDate="2026-08-20", Period="day")
+    together = aggregate(gdf, crs="EPSG:3338")
+    assert list(together["Platform"]) == ["ALL"] and together["platforms"].iloc[0] == "N20,NPP"
+    assert list(together.columns[:3]) == ["LocalDate", "Period", "Platform"]
+    apart = aggregate(gdf, fuse_by="platform", crs="EPSG:3338")
+    assert sorted(apart["Platform"]) == ["N20", "NPP"]
+    assert (apart["n_pixels"] == 1).all()
+    with pytest.raises(ValueError):
+        aggregate(gdf, fuse_by="orbit")

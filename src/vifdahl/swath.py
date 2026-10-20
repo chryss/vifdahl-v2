@@ -102,6 +102,26 @@ def scene_is_day(solar_zenith: NDArray[np.floating]) -> bool:
     return bool(np.all(is_day(solar_zenith)))
 
 
+def nadir_daynight(
+    solar_zenith: NDArray[np.floating], sensor_zenith: NDArray[np.floating]
+) -> tuple[NDArray[np.bool_], NDArray[np.bool_]]:
+    """Per-pixel day flag, and a mask of pixels matching their row's most-nadir pixel.
+
+    Each row takes day/night from its pixel with the smallest sensor zenith
+    angle; pixels of the other class (off-nadir, across the terminator) are
+    masked out.
+
+    Returns
+    -------
+    tuple of numpy.ndarray
+        ``day`` and ``keep``, both boolean with the input shape.
+    """
+    day = is_day(solar_zenith)
+    vza = np.where(np.isfinite(sensor_zenith), sensor_zenith, np.inf)
+    ref = day[np.arange(day.shape[0]), np.argmin(vza, axis=1)]
+    return day, day == ref[:, None]
+
+
 def pixel_footprints(
     lons: NDArray[np.floating],
     lats: NDArray[np.floating],

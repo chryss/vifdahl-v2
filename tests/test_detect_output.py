@@ -4,6 +4,7 @@ from pathlib import Path
 
 import geopandas as gpd
 import pyogrio
+import pytest
 import xarray as xr
 
 from vifdahl.detect import detect, detections_table
@@ -34,3 +35,11 @@ def test_empty_swath(swath: xr.Dataset) -> None:
     swath["i4_bt"][:] = 270.0
     table = detections_table(swath, detect(swath))
     assert table.empty and "TB4" in table.columns
+
+
+def test_daynight_modes(swath: xr.Dataset) -> None:
+    scene = detect(swath)
+    for mode in ("pixel", "nadir"):  # uniform night scene: all modes agree
+        assert (detect(swath, daynight=mode).hot == scene.hot).all()
+    with pytest.raises(ValueError):
+        detect(swath, daynight="per_pixel")

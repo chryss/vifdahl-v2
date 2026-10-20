@@ -18,6 +18,7 @@ GROW_M = 200.0
 SHRINK_M = 120.0
 HIGH_TYPES = ("A", "H")
 MIN_OVERLAP_M2 = 1.0
+FUSE_BY = ("all", "platform")
 
 
 def _summarize(pixels: pd.DataFrame) -> dict:
@@ -97,6 +98,7 @@ def fuse(
 def aggregate(
     footprints: gpd.GeoDataFrame,
     by: Sequence[str] = ("LocalDate", "Period"),
+    fuse_by: str = "all",
     **fuse_kwargs,
 ) -> gpd.GeoDataFrame:
     """Fuse footprints separately for each group (default: date and period).
@@ -107,20 +109,27 @@ def aggregate(
         Pixel footprints (see ``fuse``) with the ``by`` columns.
     by : sequence of str, optional
         Grouping columns.
+    fuse_by : {"all", "platform"}, optional
+        Fuse all platforms together (``Platform`` = ``"ALL"``), or each
+        platform separately.
     **fuse_kwargs
         Passed to ``fuse``.
 
     Returns
     -------
     geopandas.GeoDataFrame
-        Fused areas in EPSG:4326 with the ``by`` columns.
+        Fused areas in EPSG:4326 with the ``by`` columns and ``Platform``.
     """
+    if fuse_by not in FUSE_BY:
+        raise ValueError(f"fuse_by must be one of {FUSE_BY}, not {fuse_by!r}")
+    keys = [*by, "Platform"] if fuse_by == "platform" else list(by)
     groups = []
-    for keys, group in footprints.groupby(list(by)):
+    for values, group in footprints.groupby(keys):
         fused = fuse(group, **fuse_kwargs)
-        for col, key in zip(by, keys):
-            fused.insert(0, col, key)
+        labels = dict(zip(keys, values)) | ({} if fuse_by == "platform" else {"Platform": "ALL"})
+        for col, value in reversed(labels.items()):
+            fused.insert(0, col, value)
         groups.append(fused.to_crs(WGS84))
     if not groups:
-        return gpd.GeoDataFrame(columns=[*by, "Class"], geometry=[], crs=WGS84)
+        return gpd.GeoDataFrame(columns=[*by, "Platform", "Class"], geometry=[], crs=WGS84)
     return gpd.GeoDataFrame(pd.concat(groups, ignore_index=True), crs=WGS84)

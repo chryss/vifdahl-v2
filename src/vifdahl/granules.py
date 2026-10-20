@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import earthaccess
+from shapely.geometry.base import BaseGeometry
 
 PRODUCTS = {
     "NPP": ("VNP02IMG", "VNP03IMG"),
@@ -32,7 +33,7 @@ class GranulePair:
     @property
     def size_mb(self) -> float:
         """Download size of both files (MB)."""
-        return self.obs.size() + self.geo.size()
+        return self.obs.size + self.geo.size
 
 
 def _time_key(granule: earthaccess.DataGranule) -> str:
@@ -74,6 +75,35 @@ def search_pairs(
         for key in sorted(found[obs_name].keys() & found[geo_name].keys()):
             pairs.append(GranulePair(platform, key, found[obs_name][key], found[geo_name][key]))
     return sorted(pairs, key=lambda p: (p.time_key, p.platform))
+
+
+def search_aois(
+    aois: dict[str, BaseGeometry],
+    start: dt.datetime,
+    end: dt.datetime,
+    platforms: tuple[str, ...] = ("NPP", "N20", "N21"),
+) -> list[GranulePair]:
+    """Search each AOI's bounding box separately and merge, without duplicates.
+
+    Parameters
+    ----------
+    aois : dict of str to shapely.geometry.base.BaseGeometry
+        AOI ID → geometry (EPSG:4326).
+    start, end : datetime.datetime
+        UTC search window.
+    platforms : tuple of str, optional
+        Keys of ``PRODUCTS``.
+
+    Returns
+    -------
+    list of GranulePair
+        Sorted by time.
+    """
+    found = {}
+    for geom in aois.values():
+        for pair in search_pairs(geom.bounds, start, end, platforms):
+            found.setdefault(pair.granule_id, pair)
+    return sorted(found.values(), key=lambda p: (p.time_key, p.platform))
 
 
 def download_pair(pair: GranulePair, raw_dir: Path) -> tuple[Path, Path]:

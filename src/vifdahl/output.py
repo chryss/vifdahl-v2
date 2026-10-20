@@ -38,7 +38,7 @@ def write_geopackage(detections: pd.DataFrame, path: str | Path, **fuse_kwargs) 
     path : str or pathlib.Path
         Output ``.gpkg``; existing layers are overwritten.
     **fuse_kwargs
-        Passed to ``vifdahl.aggregate.fuse``.
+        Passed to ``vifdahl.aggregate.aggregate`` (``fuse_by``) and ``fuse``.
     """
     footprints = footprints_layer(detections)
     points_layer(detections).to_file(path, layer="points", driver="GPKG")
@@ -60,7 +60,7 @@ def write_daily(
     prefix : str, optional
         File name prefix, e.g. including the threshold variant.
     **fuse_kwargs
-        Passed to ``vifdahl.aggregate.fuse``.
+        Passed to ``vifdahl.aggregate.aggregate`` (``fuse_by``) and ``fuse``.
 
     Returns
     -------

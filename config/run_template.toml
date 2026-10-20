@@ -4,7 +4,8 @@ name = "mukluk_2026"                    # names the work folder and output files
 [aoi]                                   # exactly one of:
 event = "sockeye"                        #   key in the events file (also gives default dates)
 # bbox = [-145.0, 62.5, -141.0, 64.0]   #   OR west, south, east, north
-# file = "aoi/my_region.geojson"        #   OR vector file
+# file = "aoi/my_region.geojson"        #   OR vector file, one AOI per feature
+# id_column = "Name"                    #   optional with file; required for >1 feature
 # buffer_km = 0                         #   optional, with file
 
 [dates]                                 # local solar dates, inclusive; optional with event
@@ -19,7 +20,8 @@ n_jobs = 8
 
 [algorithm]                             # any Thresholds field; defaults otherwise
 min_i5_special = 305
-per_pixel_daynight = false
+daynight = "scene"                      # "scene" (published) | "pixel" | "nadir"
 
 [output]
 format = "gpkg"
+fuse_by = "all"                         # "all": fuse all platforms together; "platform": separately

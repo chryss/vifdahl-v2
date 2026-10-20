@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from conftest import OVERLAP_ROWS, SCAN_ROWS, bowtie_lats, load_legacy
-from vifdahl.swath import duplicate_pixels, pixel_footprints, scene_is_day
+from vifdahl.swath import duplicate_pixels, nadir_daynight, pixel_footprints, scene_is_day
 
 
 def test_duplicates_match_legacy() -> None:
@@ -55,3 +55,13 @@ def test_footprints_match_legacy() -> None:
 def test_scene_is_day() -> None:
     assert scene_is_day(np.array([[30.0, 89.0]]))
     assert not scene_is_day(np.array([[30.0, 95.0]]))
+
+
+def test_nadir_daynight() -> None:
+    sza = np.array([[80.0, 85.0, 95.0],     # nadir (middle) is day: drop the night pixel
+                    [95.0, 100.0, 80.0]])   # nadir is night: drop the day pixel
+    vza = np.array([[50.0, 0.0, 50.0],
+                    [40.0, 10.0, np.nan]])
+    day, keep = nadir_daynight(sza, vza)
+    np.testing.assert_array_equal(day, [[True, True, False], [False, False, True]])
+    np.testing.assert_array_equal(keep, [[True, True, False], [True, True, False]])
