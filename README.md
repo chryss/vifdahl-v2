@@ -16,9 +16,9 @@ broadcast (planned). Output: one GeoPackage per local solar date with layers
 - `src/vifdahl/periods.py` – local solar date, day/night period
 - `src/vifdahl/aggregate.py` – fuse footprints into H/L areas (EPSG:6931)
 - `src/vifdahl/output.py` – layers, daily GeoPackage writer
-- `src/vifdahl/readers/` – common swath schema; SDR and L1B readers
-- `data/reference/` – fire perimeters, 2015 detections, 2019 Shovel Creek products
-- `legacy/` – old code, local only, not in git (see `legacy/README.md`)
+- `src/vifdahl/readers/`: common swath schema; SDR and L1B readers
+- `data/reference/`: fire perimeters, 2015 detections, 2019 Shovel Creek products
+- `legacy/` (not checked in - rsynched on dev machines): old code, local only, not in git (see `legacy/README.md`)
 
 ## Setup
 
