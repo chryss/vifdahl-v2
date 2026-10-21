@@ -17,15 +17,15 @@ thresholds may still change before a versioned release.
 
 | Archive | Local dates | AOIs | Daily files | Size |
 |---|---|---|---|---|
-| [`VIFDAHL_eastsiberia_2020.zip`](URL) | 2020-06-01 – 2020-09-30 | Bering_tundra, Northeast_Siberian_coastal_tundra, Northeast_Siberian_taiga | 201 | 171 MB |
-| [`VIFDAHL_AK_boreal_2022.zip`](URL) | 2022-04-26 – 2022-09-25 | Boreal_AK_and_adjacent_CA | 129 | 56 MB |
-| [`VIFDAHL_mukluk_fullrun.zip`](URL) | 2026-08-17 – 2026-09-10 | mukluk | 4 | 0.4 MB |
+| [`VIFDAHL_eastsiberia_2020.zip`](https://drive.google.com/file/d/150FDD8du2dkVXZO3Qq34DyqkGyt_1mJ6/view?usp=drive_link) | 2020-06-01 – 2020-09-30 | Bering_tundra, Northeast_Siberian_coastal_tundra, Northeast_Siberian_taiga | 201 | 171 MB |
+| [`VIFDAHL_AK_boreal_2022.zip`](https://drive.google.com/file/d/1zf_B2qsoQjmQwLhne90WlPsbbWnr5VV-/view?usp=drive_link) | 2022-04-26 – 2022-09-25 | Boreal_AK_and_adjacent_CA | 129 | 56 MB |
+| [`VIFDAHL_mukluk_fullrun.zip`](https://drive.google.com/file/d/1uCvF6K8tN6eyf5-VDgHdkRHFUEQf3_gS/view?usp=drive_link) | 2026-08-17 – 2026-09-10 | mukluk | 4 | 0.4 MB |
 
 | Run | Platforms | AOI |
 |---|---|---|
 | eastsiberia_2020 | S-NPP | 2020 large-fire perimeters (TaLuCi), unioned per ecoregion |
 | AK_boreal_2022 | S-NPP | Boreal Alaska and adjacent Canada |
-| mukluk_fullrun | S-NPP, NOAA-20, NOAA-21 | Mukluk Fire, Alaska (box around the fire) |
+| mukluk_fullrun | S-NPP, NOAA-20, NOAA-21 | 2026 Mukluk Fire, Alaska (box around the fire) |
 
 ## Archive layout
 
@@ -112,10 +112,16 @@ One row per AOI × local date × period × platform, plus a `Platform = ALL` row
 
 | Setting | Value |
 |---|---|
-| I5 threshold for the special warm test (`min_i5_special`) | TODO |
-| Day/night threshold selection | TODO: `scene` (whole granule) / `pixel` |
+| I5 threshold for the special warm test (`min_i5_special`) | 305 K |
+| Day/night selection |  `nadir` |
 | Anomalous I4 rule (L1B) | I4 Saturation flag, or Out_of_Range flag with TB5 > 300 K |
-| Code version | TODO: commit |
+| Code version | commit eee1fe0 |
+
+Day/night threshold selection options are
+
+- `scene` : a scene is rejected if it has pixels with sun zenith angle SZA > 90° and SZA ≤ 90°. Every scene is entirely either day or night 
+- `pixel`: each pixel is  individually classified by SZA
+- `nadir`: classification goes by nadir, pixels at the edge that belong to the other time of day are rejected 
 
 ## Reference and contact
 
@@ -126,5 +132,5 @@ The algorithm is described in:
   improved operational approach for high latitudes. *Remote Sensing of
   Environment*, 199, 389–400.
 
-Contact: Chris Waigl, International Arctic Research Center, University of
+Contact: Chris Waigl, International Arctic Research Center, University of 
 Alaska Fairbanks (cwaigl@alaska.edu).
